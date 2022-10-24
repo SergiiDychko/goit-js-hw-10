@@ -31,7 +31,8 @@ if (countries.length > 10) {
     return Notify.info(
       'Too many matches found. Please enter a more specific name'
     );
-  }
+}
+  countryInfoRef.innerHTML = '';
   const markup = countries
     .map(country => {
       return `
@@ -47,8 +48,11 @@ if (countries.length > 10) {
     document.querySelector('.country-name').classList.add('single-country');
     countryInfoRef.innerHTML = `
       <p><span class="info-title">Capital: </span>${countries[0].capital}</p>
-      <p><span class="info-title">Population: </span>${countries[0].population}</p>
-      <p><span class="info-title">Languages: </span>${countries[0].languages.name}</p>
+      <p><span class="info-title">Population: </span>${
+        countries[0].population
+      }</p>
+      <p><span class="info-title">Languages: </span>${countries[0].languages.map(
+        language => language.name).join(', ')}</p>
     `;
   }
 }
