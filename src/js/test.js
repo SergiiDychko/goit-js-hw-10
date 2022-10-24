@@ -1,34 +1,61 @@
-const fetchUsersBtn = document.querySelector('.btn');
-const userList = document.querySelector('.user-list');
+import './css/styles.css';
+import { fetchCountries } from './js/fetchCountries';
+import { Notify } from 'notiflix';
+import debounce from 'lodash.debounce';
+const DEBOUNCE_DELAY = 300;
 
-fetchUsersBtn.addEventListener('click', () => {
-  fetchUsers()
-    .then(users => renderUserList(users))
-    .catch(error => console.log(error));
-});
+const searchBoxRef = document.querySelector('input#search-box');
+const countryListRef = document.querySelector('.country-list');
+const countryInfoRef = document.querySelector('.country-info');
 
-function fetchUsers() {
-  return fetch(
-    'https://jsonplaceholder.typicode.com/users?_limit=7&_sort=name'
-  ).then(response => {
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-    return response.json();
-  });
-}
+searchBoxRef.addEventListener(
+  'input',
+  debounce(() => {
+    fetchCountries(searchBoxRef.value.trim())
+      .then(countries => renderCountryList(countries))
+      .catch(error => {
+        Notify.failure('Oops, there is no country with that name');
+        countryListRef.innerHTML = '';
+        countryInfoRef.innerHTML = '';
+      });
+  }, DEBOUNCE_DELAY)
+);
 
-function renderUserList(users) {
-  const markup = users
-    .map(user => {
-      return `
-          <li>
-            <p><b>Name</b>: ${user.name}</p>
-            <p><b>Email</b>: ${user.email}</p>
-            <p><b>Company</b>: ${user.company.name}</p>
-          </li>
-      `;
-    })
-    .join('');
-  userList.innerHTML = markup;
+function renderCountryList(countries) {
+  console.log(countries.length);
+  if (countries.length > 10) {
+    countryListRef.innerHTML = '';
+    countryInfoRef.innerHTML = '';
+    return Notify.info(
+      'Too many matches found. Please enter a more specific name'
+    );
+  } else if ((countries.length <= 10) & (countries.length >= 2)) {
+    const markup = countries
+      .map(country => {
+        return `
+            <li>
+              <p><b>Name</b>: ${country.name}</p>
+              <p><b>capital</b>: ${country.capital}</p>
+              <p><b>population</b>: ${country.population}</p>
+              </li>
+        `;
+      })
+      .join('');
+    countryListRef.innerHTML = markup;
+  } else if (countries.length === 1) {
+    const markup = countries
+      .map(country => {
+        return `
+            <li>
+              <p><b>flag</b>: ${country.flags.svg}</p>
+              <p><b>Name</b>: ${country.name}</p>
+              </li>
+        `;
+      })
+      .join('');
+    countryListRef.innerHTML = '';
+    countryInfoRef.innerHTML = markup;
+  } else {
+    return Notify.info('Start typing the name of the country, please');
+  }
 }
